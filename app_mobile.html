@@ -1,0 +1,553 @@
+<!DOCTYPE html>
+<html ng-app="app">
+<!-- ng-app="app" 是什么 -->
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no,minimal-ui">
+	<!-- 1这是什么?  viewport就是可是区域,解释宽度就是设备的宽度,初始比例是1,用户能不能调整比例:不能,minimal-ui是不让用户看到地址栏-->
+	<meta name="format-detection" content="telephone=no">
+	<!-- 2这是什么?  format-detection:格式识别,(不设置的话,会把数字认为是电话号码,高亮处理) ,content="telephone=no"解决问题 -->
+	<link rel="stylesheet" type="text/css" href="css/reset.css">
+	<!-- 3这是什么? -->
+	<style type="text/css">
+		html{
+			width:100%;	
+			height:100%;
+			overflow-x: hidden;
+			/*能够防止滚动条失效*/
+		}
+		body{
+			text-align: left;
+			width:100%;
+			overflow: hidden; 
+			/* 防止横向移出,但是出现了纵向的滚动条消失,在html标签解决这个问题*/
+			background:#e9dfc7;
+		}
+		.m-read-content{ 
+			font-size: 14px;
+			color:#555;
+			line-height:31px;
+			padding:15px;
+		}
+		/*文本内容的标签*/
+		.m-read-content h4{
+			font-size: 20px;
+			color:#736357;
+			border-bottom: solid 1px #736357;
+			letter-spacing: 1px;
+		}
+		/*文本内容的标题*/
+		.m-read-content p{
+			text-indent: 2em;
+			margin:0.5em 0;
+			letter-spacing: 0px;
+			line-height: 24px;
+		}
+		/*文本内容的段落*/
+		.u-tab{
+			height:34px;
+			margin:10px auto;
+			line-height: 34px;
+			border-radius: 8px;
+			border:1px solid #858382;
+			font-size: 12px;
+			background:#000;
+			opacity: 0.9;	
+		}
+		/*文本结束后的翻页按钮整体*/
+		.u-tab li{
+			display: inline-block;
+			width:49%;
+			border-right: 1px solid #858382;
+			text-align: center;
+			color:#fff;
+		}
+		/*翻页按钮的样式*/
+		.u-tab li:nth-child(2){
+			border-right:none;
+		}
+		/*li:nth-child(2)是从1开始的*/
+
+
+
+		.m-button-bar{
+			width:70%;
+			max-width: 800px;
+			padding:5px;
+			margin:0 auto;
+		}
+		/*按钮的样式,在移动端和pc端的区别*/
+
+
+		/*头部导航栏*/
+
+		.top-nav{
+			position: fixed;
+			top:0;
+			height:50px;
+			width:100%;
+			z-index: 9999;
+			background: #000;
+		}
+		/*头部导航条的整体*/
+
+
+		.icon-back{
+			position: absolute;
+			top:14px;
+			left:10px;
+			width:23px;
+			height:23px;
+			background: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAFAAAABQCAYAAACOEfKtAAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAAyNpVFh0WE1MOmNvbS5hZG9iZS54bXAAAAAAADw/eHBhY2tldCBiZWdpbj0i77u/IiBpZD0iVzVNME1wQ2VoaUh6cmVTek5UY3prYzlkIj8+IDx4OnhtcG1ldGEgeG1sbnM6eD0iYWRvYmU6bnM6bWV0YS8iIHg6eG1wdGs9IkFkb2JlIFhNUCBDb3JlIDUuNS1jMDE0IDc5LjE1MTQ4MSwgMjAxMy8wMy8xMy0xMjowOToxNSAgICAgICAgIj4gPHJkZjpSREYgeG1sbnM6cmRmPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5LzAyLzIyLXJkZi1zeW50YXgtbnMjIj4gPHJkZjpEZXNjcmlwdGlvbiByZGY6YWJvdXQ9IiIgeG1sbnM6eG1wPSJodHRwOi8vbnMuYWRvYmUuY29tL3hhcC8xLjAvIiB4bWxuczp4bXBNTT0iaHR0cDovL25zLmFkb2JlLmNvbS94YXAvMS4wL21tLyIgeG1sbnM6c3RSZWY9Imh0dHA6Ly9ucy5hZG9iZS5jb20veGFwLzEuMC9zVHlwZS9SZXNvdXJjZVJlZiMiIHhtcDpDcmVhdG9yVG9vbD0iQWRvYmUgUGhvdG9zaG9wIENDIChNYWNpbnRvc2gpIiB4bXBNTTpJbnN0YW5jZUlEPSJ4bXAuaWlkOkJGMkEyQkQxMjdBNDExRTU4NjA2QTJDMjFDQ0I0ODhEIiB4bXBNTTpEb2N1bWVudElEPSJ4bXAuZGlkOkJGMkEyQkQyMjdBNDExRTU4NjA2QTJDMjFDQ0I0ODhEIj4gPHhtcE1NOkRlcml2ZWRGcm9tIHN0UmVmOmluc3RhbmNlSUQ9InhtcC5paWQ6QkYyQTJCQ0YyN0E0MTFFNTg2MDZBMkMyMUNDQjQ4OEQiIHN0UmVmOmRvY3VtZW50SUQ9InhtcC5kaWQ6QkYyQTJCRDAyN0E0MTFFNTg2MDZBMkMyMUNDQjQ4OEQiLz4gPC9yZGY6RGVzY3JpcHRpb24+IDwvcmRmOlJERj4gPC94OnhtcG1ldGE+IDw/eHBhY2tldCBlbmQ9InIiPz4Ia560AAAHWklEQVR42uyd7W9U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);
+			background-size: contain;
+		}
+		/*头部导航条的图片*/
+
+
+		.nav-title{
+			position:absolute;
+			top:16px;
+			left:42px;
+			color:#d5d5d6;
+		}
+		/*头部导航条的文字*/
+
+
+
+		.nav-panel-bk{
+			position:fixed;
+			bottom:70px;
+			height:135px;
+			width:100%;
+			background:#000;
+			opacity:0.9;
+			z-index: 10000;
+		}
+		/*尾部工具条的整体*/
+		.nav-panel{
+			position:fixed;
+			height:135px;
+			width:100%;
+			background:none;
+			color:#fff;
+			z-index:10001;
+		}
+		/*尾部工具条的样式*/
+
+		.child-mod{
+			padding:5px 10px;
+			margin:15px;
+
+		}
+		/*尾部工具条一条的样式*/
+
+		.child-mod span{
+			display:inline-block;
+			padding-right:20px;
+			padding-left: 10px;
+
+		}
+		/*尾部工具条的一条的文字*/
+
+		.font-size-button{
+			background: none;
+			border:1px solid #8c8c8c;
+			color:#fff;
+			border-radius:16px;
+			padding:5px 40px;
+		}
+		/*尾部工具条的一条的按钮*/
+
+		.child-mod button:nth-child(2){
+			margin-right:10px;
+
+		}
+		/*尾部工具条的一条的样式的修整*/
+
+		.bk-container{
+			position:relative;
+			width:30px;
+			height:30px;
+			border-radius: 15px;
+			background: #fff;
+			display: inline-block;
+			/*vertical-align: -14px;*/
+
+		}
+		/*尾部按钮的样式*/
+
+
+		.bk-container-current{
+			position: absolute;
+			width:32px;
+			height:32px;
+			border-radius: 16px;
+			border:1px #ff7800 solid;
+			display: block;
+			top:-2px;
+			left:-2px;
+		}
+		/*尾部按钮选中的样式*/
+
+
+
+
+
+
+
+		/*交互div*/
+
+
+		.artical-action-mid{
+			position:fixed;
+			z-index:10002;
+			width:100%;
+			height:40%;
+			top:30%;
+		}
+
+
+
+
+	</style>
+
+</head>
+<body>
+<!-- 模拟出native移动端的效果 -->
+	<div id="root" class="container">
+	<!-- 包裹层 -->
+
+
+<!-- 顶部操作面板,下次放在包裹层外面 -->
+		<div id="top_nav" class="top-nav" style="display: none">
+			<div class="icon-back"></div>
+			<div class="nav-title">返回书架</div>
+		</div>
+		<!-- 事件调出的返回功能,以后放在包裹层外面-->
+
+		<!-- <div id="fiction_chapter_title"></div> 没用上-->
+		  <!-- 向上翻 -->
+
+
+		<div id="fiction_container" class="m-read-content">
+		<!-- <h4>太好了</h4>
+		<p> “太好2345454657687897了，想不到我们成功了。”二猛乐滋滋，笑的鼻涕泡都快出来了。
+
+    皮猴也笑嘻嘻，道：“以后我们石村将会有强大的凶禽守护，族长还有林虎叔他们肯定会服气，对我们另眼相看。”
+
+    “哎呦！”石大壮一个趔趄，差点栽倒，被小不点一把扶住。
+
+    凶鸟的巢中铺满了金丝草，很柔软，但在当中却也隐有几枚闪动冷冽金属光泽的鳞片，石大壮一个没注意，踏在了上面，鞋底都被刺穿了，脚掌流出一些血迹，还好只是划破皮而已。
+
+    “好锋锐的鳞片！”小不点石昊将几枚青鳞收集到手中，每一个都有婴儿巴掌大，寒光闪烁。
+
+    “这就是成熟的凶禽的鳞片，果然不凡，我估计以数百斤重的阔剑都很难劈开！”皮猴道。
+
+    几
+    	</p>
+    	<p> “太好了，想不到我们成功了。”二猛乐滋滋，笑的鼻涕泡都快出来了。
+
+    皮猴也笑嘻嘻，道：“以后我们石村将会有强大的凶禽守护，族长还有林虎叔他们肯定会服气，对我们另眼相看。”
+
+    “哎呦！”石大壮一个趔趄，差点栽倒，被小不点一把扶住。
+
+    凶鸟的巢中铺满了金丝草，很柔软，但在当中却也隐有几枚闪动冷冽金属光泽的鳞片，石大壮一个没注意，踏在了上面，鞋底都被刺穿了，脚掌流出一些血迹，还好只是划破皮而已。
+
+    “好锋锐的鳞片！”小不点石昊将几枚青鳞收集到手中，每一个都有婴儿巴掌大，寒光闪烁。
+
+    “这就是成熟的凶禽的鳞片，果然不凡，我估计以数百斤重的阔剑都很难劈开！”皮猴道。
+
+    几
+    	</p>
+    	<p> 
+    	“太好了，想不到我们成功了。”二猛乐滋滋，笑的鼻涕泡都快出来了。
+
+    皮猴也笑嘻嘻，道：“以后我们石村将会有强大的凶禽守护，族长还有林虎叔他们肯定会服气，对我们另眼相看。”
+
+    “哎呦！”石大壮一个趔趄，差点栽倒，被小不点一把扶住。
+
+    凶鸟的巢中铺满了金丝草，很柔软，但在当中却也隐有几枚闪动冷冽金属光泽的鳞片，石大壮一个没注意，踏在了上面，鞋底都被刺穿了，脚掌流出一些血迹，还好只是划破皮而已。
+
+    “好锋锐的鳞片！”小不点石昊将几枚青鳞收集到手中，每一个都有婴儿巴掌大，寒光闪烁。
+
+    “这就是成熟的凶禽的鳞片，果然不凡，我估计以数百斤重的阔剑都很难劈开！”皮猴道。
+
+    几
+    	</p>	 -->		
+		</div>
+
+<!-- 连接包裹层的底部翻页按钮 -->
+		<div class="m-button-bar">
+			<ul class="u-tab">
+				<li id="prev_button">上一章</li>
+				<li id="next_button">下一章</li>
+			</ul>
+		</div>
+
+
+
+<!-- 底部的操作面板 -->
+		<div class="nav-panel-bk bottom_nav" style="display: none">
+ 		<div class="nav-panel" id="font_container">
+ 			<div class="child-mod">
+ 				<span>字号</span>
+ 				<button id="large_font" class="font-size-button">大</button>
+ 				<button id="small_font" class="font-size-button">小</button>
+ 			</div>
+ 			<div class="child-mod">
+ 				<span>背景</span>
+ 				<div class="bk-container">
+ 					<div class="bk-container-current"></div>
+ 				</div>
+ 			</div>
+ 		</div>
+ 	</div>
+
+
+	</div>
+<!-- 包裹层以外 -->
+
+	<!-- 交互边栏 -->
+	<div class="m-artical-action">
+		<div class="artical-action-mid" id="action_mid"></div>
+
+	</div>
+
+
+
+
+
+
+
+
+
+
+	<script src='lib/zepto.min.js'></script>
+	<script type="text/javascript">
+		window.jQuery=$;
+		// 作用是什么???
+	</script>
+	<script src='js/jquery.base64.js'></script>
+	<script src='js/jquery.jsonp.js'></script>
+	<script type="text/javascript">
+
+
+
+
+	(function(){//函数闭包自执行
+
+
+
+
+
+
+
+
+
+
+
+		//制作多次运用的工具
+		var Util=(function(){//通用方法封装
+			var prefix="html5_reader_";
+			var StorageGetter=function(key){				
+				return localStorage.getItem(prefix+key);
+			};
+			var StorageSetter=function(key,val){
+				return localStorage.setItem(prefix+key,val);
+			};
+			var getJsonp=function(url,callback){
+				return $.jsonp({
+					url:url,
+					cache:true,
+					callback:'duokan_fiction_chapter',
+					success:function(result){
+						var data=$.base64.decode(result);
+						var json=decodeURIcomponent(escape(data));
+						callback(json);
+					}
+
+					});
+				};//function
+			
+
+			return {
+				StorageGetter:StorageGetter,
+				StorageSetter:StorageSetter,
+				getJsonp:getJsonp
+			}
+		})();
+
+
+
+
+
+
+
+
+
+
+		//顶层声明的常量(最常用的常量,优化性能)
+		
+		var Dom={
+			top_nav:$('#top_nav'),
+			bottom_nav:$('.bottom_nav'),
+			font_button:$('#font_button'), //还没有写这个
+			font_container:$('.font-container'),
+		};
+		var Win=$(window);
+		var Doc=$(document);
+		var RootContainer=$('#fiction_container');
+		var initFontSize=Util.StorageGetter('fontSize');
+		if(!initFontSize){
+			initFontSize=14;
+		}
+
+		
+		RootContainer.css('font-size',initFontSize-0);
+
+
+
+
+
+
+
+
+
+
+
+		//整个项目的入口函数
+		main();
+
+		function main(){
+			//整个项目的入口函数
+			EventHandler();
+			ReaderModel();		
+		};
+
+
+
+
+		function ReaderModel(){
+			console.log(12312312)
+			//todo:实现和阅读器相关的数据交互的方法(AJAX,JSONP)
+			var Chapter_id;
+			var init=function(){
+				getFictionInfo(function(){
+					getCurChapterContent(Chapter_id,function(){
+
+					});
+				})
+			}
+			var getFictionInfo=function(){
+				$.get('data/chapter.json',function(){
+					// todo:获取信息之后的回调
+					Chapter_id=data.chapters[1].chapter_id;
+					callback&&callback();
+					
+				},'json');//回头看一下jq的ajax请求
+			}
+			var getCurChapterContent=function(chapter_id,callabck){
+				$.get('data/data'+chapter_id+'.json',function(data){
+					if(data.result==0){
+						var url=data.jsonp;
+						Util.getJsonp(url,function(){
+							callback&&callback(data);
+						});
+					}
+				},'json')
+			}
+			return {
+				init:init
+			}
+			
+		};
+
+
+
+
+
+		function ReaderBaseFrame(){
+			//todo:渲染基本的UI结构
+		};
+
+
+
+
+
+
+
+
+		function EventHandler(){
+			//todo:交互的时间绑定
+			//
+			//
+			$("#action_mid").click(function(){//为什么用click事件
+				if(Dom.top_nav.css('display')=="none"){
+					Dom.bottom_nav.show();
+					Dom.top_nav.show()
+				}else{
+					Dom.top_nav.hide();
+					Dom.bottom_nav.hide();
+				}
+			})//"#action_mid"
+
+
+			$('night_switch').click(function(){ //不用单独写这个事件,就用一次,不用变量缓存
+				// todo:触发背景切换到事件
+			});//night_switch
+
+
+
+			Dom.font_button.click(function(){//还没有写html和css
+				if(Dom.font_container.css('display')=='none'){
+					Dom.font_container.show();
+					Dom.font_button.addClass('current');
+				}else{
+					Dom.font_container.hide();
+					Dom.font_button.removeClass('current');
+				}
+			})
+
+
+			$('#large_font').click(function() {//调整字体大小
+				
+				if(initFontSize>20){					
+					return;
+				}
+				console.log(1)
+				initFontSize=parseInt(initFontSize)+1;				
+				RootContainer.css('font-size',initFontSize);
+				Util.StorageSetter('fontSize',initFontSize);
+			});
+
+			$('#small_font').click(function() {//调整字体大小
+
+				if(initFontSize<12){					
+					return;
+				} 
+
+				initFontSize-=1;
+				console.log(2)
+				RootContainer.css('font-size',initFontSize);
+				Util.StorageSetter('fontSize',initFontSize)
+			});
+
+
+
+			Win.scroll(function(){  //  (Win而不是$(Win))
+					Dom.top_nav.hide();
+					Dom.bottom_nav.hide();
+					Dom.font_container.hide();
+					Dom.font_button.removeClass('current');
+			})//Win
+
+
+
+
+		};//EventHandler
+
+
+})()
+</script>
+</body>
+</html>
